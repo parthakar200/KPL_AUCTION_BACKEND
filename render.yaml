@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: KPL_AUCTION_BACKEND
+    runtime: java
+    buildCommand: ./mvnw clean install -DskipTests
+    startCommand: java -jar target/auction-backend-1.0.0.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 17
