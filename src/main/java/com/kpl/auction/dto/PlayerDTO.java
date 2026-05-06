@@ -11,4 +11,5 @@ public class PlayerDTO {
     private Integer soldPrice;
     private String teamId;
     private String status;
+    private String photo;
 }

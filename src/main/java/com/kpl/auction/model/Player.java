@@ -37,4 +37,8 @@ public class Player {
     /** pending | sold | unsold */
     @Column(nullable = false, length = 10)
     private String status;
+
+    /** Base64-encoded player photo (data URI), nullable */
+    @Column(columnDefinition = "TEXT")
+    private String photo;
 }

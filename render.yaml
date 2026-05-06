@@ -1,9 +1,8 @@
 services:
   - type: web
     name: KPL_AUCTION_BACKEND
-    runtime: java
-    buildCommand: ./mvnw clean install -DskipTests
-    startCommand: java -jar target/auction-backend-1.0.0.jar
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: JAVA_VERSION
-        value: 17
+      - key: PORT
+        value: 8080

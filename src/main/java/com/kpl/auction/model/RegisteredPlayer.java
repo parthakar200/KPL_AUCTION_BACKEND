@@ -34,4 +34,8 @@ public class RegisteredPlayer {
 
     @Column(nullable = false)
     private boolean addedToAuction;
+
+    /** Base64-encoded player photo (data URI), nullable */
+    @Column(columnDefinition = "TEXT")
+    private String photo;
 }

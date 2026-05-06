@@ -11,4 +11,5 @@ public class RegisteredPlayerDTO {
     private String phone;
     private String registeredAt;
     private boolean addedToAuction;
+    private String photo;
 }

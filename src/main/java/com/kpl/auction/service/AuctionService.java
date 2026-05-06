@@ -174,6 +174,10 @@ public class AuctionService {
         if (req.getCategory() != null) p.setCategory(req.getCategory());
         if (req.getRole() != null) p.setRole(req.getRole());
         if (req.getBasePrice() > 0) p.setBasePrice(req.getBasePrice());
+        // photo: empty string means "remove", null means "unchanged", data URI means "set"
+        if (req.getPhoto() != null) {
+            p.setPhoto(req.getPhoto().isBlank() ? null : req.getPhoto());
+        }
         return toPlayerDTO(playerRepo.save(p));
     }
 
@@ -387,6 +391,7 @@ public class AuctionService {
             .category(req.getCategory()).basePrice(req.getBasePrice())
             .phone(req.getPhone() != null ? req.getPhone().trim() : "")
             .registeredAt(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+            .photo(req.getPhoto() != null && !req.getPhoto().isBlank() ? req.getPhoto() : null)
             .addedToAuction(false).build();
         return toRegDTO(regRepo.save(rp));
     }
@@ -400,6 +405,9 @@ public class AuctionService {
         if (req.getCategory() != null) rp.setCategory(req.getCategory());
         if (req.getBasePrice() > 0) rp.setBasePrice(req.getBasePrice());
         if (req.getPhone() != null) rp.setPhone(req.getPhone().trim());
+        if (req.getPhoto() != null) {
+            rp.setPhoto(req.getPhoto().isBlank() ? null : req.getPhoto());
+        }
         return toRegDTO(regRepo.save(rp));
     }
 
@@ -414,11 +422,23 @@ public class AuctionService {
             .orElseThrow(() -> new NoSuchElementException("Registered player not found"));
         if (rp.isAddedToAuction())
             throw new IllegalStateException(rp.getName() + " is already in the auction queue!");
-        AddPlayerRequest req = new AddPlayerRequest(rp.getName(), rp.getCategory(), rp.getRole(), rp.getBasePrice());
-        PlayerDTO added = addPlayer(req);
+        // Create player with photo carried over from registered player
+        Player p = Player.builder()
+            .id("p" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 3))
+            .name(rp.getName()).category(rp.getCategory())
+            .role(rp.getRole() != null ? rp.getRole() : "BAT")
+            .basePrice(rp.getBasePrice()).status("pending")
+            .photo(rp.getPhoto()).build();
+        p = playerRepo.save(p);
+        // Add to queue
+        AuctionState as = getState();
+        List<String> q = new ArrayList<>(parseList(as.getQueue()));
+        q.add(p.getId());
+        as.setQueue(String.join(",", q));
+        stateRepo.save(as);
         rp.setAddedToAuction(true);
         regRepo.save(rp);
-        return added;
+        return toPlayerDTO(p);
     }
 
     // ── Private helpers ────────────────────────────────────────────────────
@@ -492,7 +512,7 @@ public class AuctionService {
         return PlayerDTO.builder()
             .id(p.getId()).name(p.getName()).category(p.getCategory())
             .role(p.getRole()).basePrice(p.getBasePrice()).soldPrice(p.getSoldPrice())
-            .teamId(p.getTeamId()).status(p.getStatus()).build();
+            .teamId(p.getTeamId()).status(p.getStatus()).photo(p.getPhoto()).build();
     }
 
     private RegisteredPlayerDTO toRegDTO(RegisteredPlayer rp) {
@@ -500,7 +520,7 @@ public class AuctionService {
             .id(rp.getId()).name(rp.getName()).role(rp.getRole())
             .category(rp.getCategory()).basePrice(rp.getBasePrice())
             .phone(rp.getPhone()).registeredAt(rp.getRegisteredAt())
-            .addedToAuction(rp.isAddedToAuction()).build();
+            .addedToAuction(rp.isAddedToAuction()).photo(rp.getPhoto()).build();
     }
 
     // ── Default builders ───────────────────────────────────────────────────

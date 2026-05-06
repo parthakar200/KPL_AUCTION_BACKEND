@@ -8,4 +8,5 @@ public class AddRegisteredPlayerRequest {
     private String category;
     private int basePrice;
     private String phone;
+    private String photo;
 }

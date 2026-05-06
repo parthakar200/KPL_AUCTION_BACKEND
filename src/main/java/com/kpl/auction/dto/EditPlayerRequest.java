@@ -7,4 +7,5 @@ public class EditPlayerRequest {
     private String category;
     private String role;
     private int basePrice;
+    private String photo;
 }
